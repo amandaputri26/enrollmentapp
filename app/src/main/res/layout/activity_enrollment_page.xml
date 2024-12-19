@@ -1,0 +1,100 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select Subjects"
+        android:textSize="18sp"
+        android:layout_marginBottom="10dp" />
+
+    <CheckBox
+        android:id="@+id/checkboxSubject1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Object Oriented Visual Programming - 3 credits" />
+
+    <CheckBox
+        android:id="@+id/checkboxSubject2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Web Programming - 3 credits" />
+
+    <CheckBox
+        android:id="@+id/checkboxSubject3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Discrete Math - 3 credits" />
+
+    <CheckBox
+        android:id="@+id/checkboxSubject4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Numerical Methods - 3 credits" />
+
+    <CheckBox
+        android:id="@+id/checkboxSubject5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Calculus - 3 credits" />
+
+    <CheckBox
+        android:id="@+id/checkboxSubject6"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Wireless Programming - 3 credits" />
+
+    <CheckBox
+        android:id="@+id/checkboxSubject7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="3D Animation - 3 credits" />
+
+    <CheckBox
+        android:id="@+id/checkboxSubject8"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Network Security - 3 credits" />
+
+    <CheckBox
+        android:id="@+id/checkboxSubject9"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Software Engineering - 3 credits" />
+
+    <CheckBox
+        android:id="@+id/checkboxSubject10"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Computer Network - 3 credits" />
+
+    <CheckBox
+        android:id="@+id/checkboxSubject11"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Database System - 3 credits" />
+
+    <CheckBox
+        android:id="@+id/checkboxSubject12"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Artificial Intelligence - 3 credits" />
+
+    <TextView
+        android:id="@+id/creditSummary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Total Credits: 0"
+        android:layout_marginTop="20dp" />
+
+    <Button
+        android:id="@+id/submitButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Submit"
+        android:onClick="submitEnrollment"
+        android:layout_marginTop="20dp" />
+</LinearLayout>

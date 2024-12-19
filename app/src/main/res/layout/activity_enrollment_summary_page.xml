@@ -1,0 +1,33 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/enrollmentSummary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No enrollments yet."
+        android:layout_marginBottom="20dp" />
+
+    <TextView
+        android:id="@+id/totalCredits"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Total Credits: 0"
+        android:layout_marginBottom="20dp" />
+
+    <Button
+        android:id="@+id/addEnrollmentButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Enrollment"
+        android:onClick="addEnrollment" />
+
+    <Button
+        android:id="@+id/logoutButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Log Out" />
+</LinearLayout>
