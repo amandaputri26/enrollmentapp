@@ -127,7 +127,6 @@ public class EnrollmentPage extends AppCompatActivity {
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Enrollment saved successfully!", Toast.LENGTH_SHORT).show();
 
-                    // Navigate to EnrollmentSummaryPage
                     Intent intent = new Intent(EnrollmentPage.this, EnrollmentSummaryPage.class);
                     startActivity(intent);
                     finish();

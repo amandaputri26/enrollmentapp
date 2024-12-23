@@ -75,8 +75,8 @@ public class EnrollmentSummaryPage extends AppCompatActivity {
 
                         TableLayout tableLayout = findViewById(R.id.enrollmentTable);
 
-                        tableLayout.setDividerDrawable(getResources().getDrawable(R.drawable.row_border)); // Set row divider
-                        tableLayout.setShowDividers(TableLayout.SHOW_DIVIDER_MIDDLE); // Show dividers between rows
+                        tableLayout.setDividerDrawable(getResources().getDrawable(R.drawable.row_border));
+                        tableLayout.setShowDividers(TableLayout.SHOW_DIVIDER_MIDDLE);
 
                         if (subjects != null && !subjects.isEmpty()) {
                             for (Map<String, Object> subject : subjects) {
@@ -90,12 +90,11 @@ public class EnrollmentSummaryPage extends AppCompatActivity {
                                     TextView subjectTextView = new TextView(this);
                                     subjectTextView.setText(subjectName);
                                     subjectTextView.setPadding(8, 8, 8, 8);
-                                    subjectTextView.setBackgroundResource(R.drawable.columns_border); // Apply column divider
-
+                                    subjectTextView.setBackgroundResource(R.drawable.columns_border);
                                     TextView creditsTextView = new TextView(this);
                                     creditsTextView.setText(String.valueOf(credits));
                                     creditsTextView.setPadding(8, 8, 8, 8);
-                                    creditsTextView.setBackgroundResource(R.drawable.columns_border); // Apply column divider
+                                    creditsTextView.setBackgroundResource(R.drawable.columns_border);
 
                                     row.addView(subjectTextView);
                                     row.addView(creditsTextView);
