@@ -8,26 +8,57 @@
         android:id="@+id/enrollmentSummary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="No enrollments yet."
+        android:textStyle="bold"
+        android:text="Enrollment Summary"
         android:layout_marginBottom="20dp" />
+
+    <TableLayout
+        android:id="@+id/enrollmentTable"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:stretchColumns="1"
+        android:divider="@drawable/table_divider"
+        android:showDividers="middle">
+
+
+        <TableRow>
+
+            <TextView
+                android:layout_width="291dp"
+                android:layout_height="wrap_content"
+                android:paddingEnd="10dp"
+                android:text="Subject"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="85dp"
+                android:layout_height="match_parent"
+                android:paddingEnd="10dp"
+                android:text="Credits"
+                android:textStyle="bold" />
+        </TableRow>
+
+    </TableLayout>
 
     <TextView
         android:id="@+id/totalCredits"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Total Credits: 0"
-        android:layout_marginBottom="20dp" />
+        android:layout_marginBottom="20dp"
+        android:textStyle="bold"
+        android:text="Total Credits: 0" />
 
     <Button
         android:id="@+id/addEnrollmentButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add Enrollment"
-        android:onClick="addEnrollment" />
+        android:onClick="addEnrollment"
+        android:text="Add Enrollment" />
 
     <Button
         android:id="@+id/logoutButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Log Out" />
+
 </LinearLayout>

@@ -2,23 +2,22 @@ package com.example.enrollmentapp;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-
-import androidx.appcompat.app.AppCompatActivity;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class EnrollmentSummaryPage extends AppCompatActivity {
     private TextView enrollmentSummary, totalCreditsView;
     private Button addEnrollmentButton, logoutButton;
     private FirebaseAuth firebaseAuth;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,9 +27,8 @@ public class EnrollmentSummaryPage extends AppCompatActivity {
         enrollmentSummary = findViewById(R.id.enrollmentSummary);
         totalCreditsView = findViewById(R.id.totalCredits);
         addEnrollmentButton = findViewById(R.id.addEnrollmentButton);
-        firebaseAuth = FirebaseAuth.getInstance();
         logoutButton = findViewById(R.id.logoutButton);
-
+        firebaseAuth = FirebaseAuth.getInstance();
 
         FirebaseUser currentUser = firebaseAuth.getCurrentUser();
         if (currentUser == null) {
@@ -42,9 +40,7 @@ public class EnrollmentSummaryPage extends AppCompatActivity {
 
         loadEnrollmentData();
 
-        addEnrollmentButton.setOnClickListener(v -> {
-            startActivity(new Intent(this, EnrollmentPage.class));
-        });
+        addEnrollmentButton.setOnClickListener(v -> startActivity(new Intent(this, EnrollmentPage.class)));
         logoutButton.setOnClickListener(v -> {
             firebaseAuth.signOut();
             Toast.makeText(this, "Logged out successfully!", Toast.LENGTH_SHORT).show();
@@ -74,29 +70,51 @@ public class EnrollmentSummaryPage extends AppCompatActivity {
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        ArrayList<Map<String, Object>> subjects = (ArrayList<Map<String, Object>>) documentSnapshot.get("selectedSubjects");
+                        List<Map<String, Object>> subjects = (List<Map<String, Object>>) documentSnapshot.get("selectedSubjects");
                         Long totalCredits = documentSnapshot.getLong("totalCredits");
 
+                        TableLayout tableLayout = findViewById(R.id.enrollmentTable);
+
+                        tableLayout.setDividerDrawable(getResources().getDrawable(R.drawable.row_border)); // Set row divider
+                        tableLayout.setShowDividers(TableLayout.SHOW_DIVIDER_MIDDLE); // Show dividers between rows
+
                         if (subjects != null && !subjects.isEmpty()) {
-                            StringBuilder summaryBuilder = new StringBuilder();
                             for (Map<String, Object> subject : subjects) {
                                 String subjectName = (String) subject.get("subjectName");
                                 Long credits = (Long) subject.get("credits");
-                                summaryBuilder.append(subjectName).append(" - ").append(credits).append(" credits\n");
-                            }
 
-                            enrollmentSummary.setText(summaryBuilder.toString());
+                                if (subjectName != null && credits != null) {
+                                    TableRow row = new TableRow(this);
+
+                                    // Apply column divider to each TextView (columns)
+                                    TextView subjectTextView = new TextView(this);
+                                    subjectTextView.setText(subjectName);
+                                    subjectTextView.setPadding(8, 8, 8, 8);
+                                    subjectTextView.setBackgroundResource(R.drawable.columns_border); // Apply column divider
+
+                                    TextView creditsTextView = new TextView(this);
+                                    creditsTextView.setText(String.valueOf(credits));
+                                    creditsTextView.setPadding(8, 8, 8, 8);
+                                    creditsTextView.setBackgroundResource(R.drawable.columns_border); // Apply column divider
+
+                                    row.addView(subjectTextView);
+                                    row.addView(creditsTextView);
+                                    tableLayout.addView(row);
+                                }
+                            }
                             totalCreditsView.setText("Total Credits: " + totalCredits);
                         } else {
-                            enrollmentSummary.setText("No subjects found!");
+                            TableRow row = new TableRow(this);
+                            TextView noDataTextView = new TextView(this);
+                            noDataTextView.setText("No subjects found!");
+                            noDataTextView.setPadding(8, 8, 8, 8);
+                            row.addView(noDataTextView);
+                            tableLayout.addView(row);
                         }
                     } else {
                         Toast.makeText(this, "No enrollment data found for this user!", Toast.LENGTH_SHORT).show();
                     }
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to load enrollment data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to load enrollment data: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
-
 }

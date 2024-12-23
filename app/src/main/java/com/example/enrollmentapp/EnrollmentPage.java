@@ -5,25 +5,25 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class EnrollmentPage extends AppCompatActivity {
     private ArrayList<EnrollmentData> selectedSubjects = new ArrayList<>();
     private int totalCredits = 0;
     private TextView creditSummary;
+    private TableLayout subjectTable;
     private Button submitButton;
     private FirebaseFirestore db;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,62 +32,70 @@ public class EnrollmentPage extends AppCompatActivity {
 
         db = FirebaseFirestore.getInstance();
         creditSummary = findViewById(R.id.creditSummary);
+        subjectTable = findViewById(R.id.subjectTable);
         submitButton = findViewById(R.id.submitButton);
 
-        setupSubjectSelection();
+        populateSubjectTable();
 
         submitButton.setOnClickListener(this::submitEnrollment);
     }
 
-    private void setupSubjectSelection() {
-        CheckBox[] subjectCheckboxes = {
-                findViewById(R.id.checkboxSubject1),
-                findViewById(R.id.checkboxSubject2),
-                findViewById(R.id.checkboxSubject3),
-                findViewById(R.id.checkboxSubject4),
-                findViewById(R.id.checkboxSubject5),
-                findViewById(R.id.checkboxSubject6),
-                findViewById(R.id.checkboxSubject7),
-                findViewById(R.id.checkboxSubject8),
-                findViewById(R.id.checkboxSubject9),
-                findViewById(R.id.checkboxSubject10),
-                findViewById(R.id.checkboxSubject11),
-                findViewById(R.id.checkboxSubject12),
-        };
-
-        int[] subjectCredits = {3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
-        String[] subjectNames = {
+    private void populateSubjectTable() {
+        String[] subjects = {
                 "Object Oriented Visual Programming",
                 "Web Programming",
                 "Discrete Mathematics",
                 "Numerical Methods",
                 "Calculus",
-                "Wireless and Mobile Programming",
-                "3D Computer Graphics and Animation",
+                "Wireless Programming",
+                "3D Animation",
                 "Network Security",
                 "Software Engineering",
                 "Computer Network",
                 "Database System",
                 "Artificial Intelligence"
         };
+        int[] credits = {3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
 
-        for (int i = 0; i < subjectCheckboxes.length; i++) {
+        for (int i = 0; i < subjects.length; i++) {
+            TableRow row = new TableRow(this);
+            row.setBackgroundResource(R.drawable.row_border); // Apply row border
+
+            TextView subjectName = new TextView(this);
+            subjectName.setText(subjects[i]);
+            subjectName.setPadding(16, 16, 16, 16);
+            subjectName.setBackgroundResource(R.drawable.columns_border); // Apply column border
+
+            TextView creditView = new TextView(this);
+            creditView.setText(String.valueOf(credits[i]));
+            creditView.setPadding(16, 16, 16, 16);
+            creditView.setBackgroundResource(R.drawable.columns_border); // Apply column border
+
+            CheckBox checkBox = new CheckBox(this);
+            checkBox.setBackgroundResource(R.drawable.columns_border); // Apply column border
+
             int index = i;
-            subjectCheckboxes[i].setOnCheckedChangeListener((buttonView, isChecked) -> {
+            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (isChecked) {
-                    if (totalCredits + subjectCredits[index] <= 18) {
-                        selectedSubjects.add(new EnrollmentData(subjectNames[index], subjectCredits[index]));
-                        totalCredits += subjectCredits[index];
+                    if (totalCredits + credits[index] <= 18) {
+                        selectedSubjects.add(new EnrollmentData(subjects[index], credits[index]));
+                        totalCredits += credits[index];
                     } else {
                         buttonView.setChecked(false);
                         Toast.makeText(this, "Maximum 18 credits allowed!", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    selectedSubjects.removeIf(sub -> sub.getSubjectName().equals(subjectNames[index]));
-                    totalCredits -= subjectCredits[index];
+                    selectedSubjects.removeIf(sub -> sub.getSubjectName().equals(subjects[index]));
+                    totalCredits -= credits[index];
                 }
                 updateCreditSummary();
             });
+
+            row.addView(subjectName);
+            row.addView(creditView);
+            row.addView(checkBox);
+
+            subjectTable.addView(row);
         }
     }
 
@@ -108,7 +116,6 @@ public class EnrollmentPage extends AppCompatActivity {
         }
 
         String userEmail = user.getEmail();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         Map<String, Object> enrollmentData = new HashMap<>();
         enrollmentData.put("selectedSubjects", selectedSubjects);
@@ -128,28 +135,5 @@ public class EnrollmentPage extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     Toast.makeText(this, "Failed to save enrollment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
-    }
-
-    private Map<String, Object> createEnrollmentData() {
-        Map<String, Object> enrollmentData = new HashMap<>();
-        List<Map<String, Object>> subjects = new ArrayList<>();
-
-        for (EnrollmentData subject : selectedSubjects) {
-            Map<String, Object> subjectMap = new HashMap<>();
-            subjectMap.put("subjectName", subject.getSubjectName());
-            subjectMap.put("credits", subject.getCredits());
-            subjects.add(subjectMap);
-        }
-
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            String email = user.getEmail();
-            enrollmentData.put("userId", email); // Store email as userId
-        }
-        enrollmentData.put("selectedSubjects", subjects);
-        enrollmentData.put("totalCredits", totalCredits);
-//        enrollmentData.put("timestamp", System.currentTimeMillis());
-
-        return enrollmentData;
     }
 }
