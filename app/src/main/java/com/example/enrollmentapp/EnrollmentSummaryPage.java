@@ -15,46 +15,48 @@ import java.util.List;
 import java.util.Map;
 
 public class EnrollmentSummaryPage extends AppCompatActivity {
-    private TextView enrollmentSummary, totalCreditsView;
+    private TextView totalCreditsView;
+    private TableLayout enrollmentTable;
     private Button addEnrollmentButton, logoutButton;
     private FirebaseAuth firebaseAuth;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_enrollment_summary_page);
 
-        enrollmentSummary = findViewById(R.id.enrollmentSummary);
         totalCreditsView = findViewById(R.id.totalCredits);
+        enrollmentTable = findViewById(R.id.enrollmentTable);
         addEnrollmentButton = findViewById(R.id.addEnrollmentButton);
         logoutButton = findViewById(R.id.logoutButton);
-        firebaseAuth = FirebaseAuth.getInstance();
 
+        firebaseAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        // Check if the user is logged in
         FirebaseUser currentUser = firebaseAuth.getCurrentUser();
         if (currentUser == null) {
-            Toast.makeText(this, "You need to log in first!", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, LoginPage.class));
-            finish();
+            redirectToLoginPage("You need to log in first!");
             return;
         }
 
+        // Load enrollment data for the current user
         loadEnrollmentData();
 
+        // Set up button listeners
         addEnrollmentButton.setOnClickListener(v -> startActivity(new Intent(this, EnrollmentPage.class)));
         logoutButton.setOnClickListener(v -> {
             firebaseAuth.signOut();
             Toast.makeText(this, "Logged out successfully!", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, LoginPage.class));
-            finish();
+            redirectToLoginPage(null);
         });
     }
 
     private void loadEnrollmentData() {
         FirebaseUser user = firebaseAuth.getCurrentUser();
         if (user == null) {
-            Toast.makeText(this, "User not logged in!", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(this, LoginPage.class));
-            finish();
+            redirectToLoginPage("User not logged in!");
             return;
         }
 
@@ -64,7 +66,6 @@ public class EnrollmentSummaryPage extends AppCompatActivity {
             return;
         }
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("enrollments")
                 .document(userEmail)
                 .get()
@@ -73,45 +74,61 @@ public class EnrollmentSummaryPage extends AppCompatActivity {
                         List<Map<String, Object>> subjects = (List<Map<String, Object>>) documentSnapshot.get("selectedSubjects");
                         Long totalCredits = documentSnapshot.getLong("totalCredits");
 
-                        TableLayout tableLayout = findViewById(R.id.enrollmentTable);
-
-                        tableLayout.setDividerDrawable(getResources().getDrawable(R.drawable.row_border));
-                        tableLayout.setShowDividers(TableLayout.SHOW_DIVIDER_MIDDLE);
-
                         if (subjects != null && !subjects.isEmpty()) {
-                            for (Map<String, Object> subject : subjects) {
-                                String subjectName = (String) subject.get("subjectName");
-                                Long credits = (Long) subject.get("credits");
-
-                                if (subjectName != null && credits != null) {
-                                    TableRow row = new TableRow(this);
-                                    TextView subjectTextView = new TextView(this);
-                                    subjectTextView.setText(subjectName);
-                                    subjectTextView.setPadding(8, 8, 8, 8);
-                                    subjectTextView.setBackgroundResource(R.drawable.columns_border);
-                                    TextView creditsTextView = new TextView(this);
-                                    creditsTextView.setText(String.valueOf(credits));
-                                    creditsTextView.setPadding(8, 8, 8, 8);
-                                    creditsTextView.setBackgroundResource(R.drawable.columns_border);
-
-                                    row.addView(subjectTextView);
-                                    row.addView(creditsTextView);
-                                    tableLayout.addView(row);
-                                }
-                            }
+                            populateEnrollmentTable(subjects);
                             totalCreditsView.setText("Total Credits: " + totalCredits);
                         } else {
-                            TableRow row = new TableRow(this);
-                            TextView noDataTextView = new TextView(this);
-                            noDataTextView.setText("No subjects found!");
-                            noDataTextView.setPadding(8, 8, 8, 8);
-                            row.addView(noDataTextView);
-                            tableLayout.addView(row);
+                            displayNoSubjectsMessage();
                         }
                     } else {
                         Toast.makeText(this, "No enrollment data found for this user!", Toast.LENGTH_SHORT).show();
+                        displayNoSubjectsMessage();
                     }
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Failed to load enrollment data: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    private void populateEnrollmentTable(List<Map<String, Object>> subjects) {
+        enrollmentTable.removeAllViews();
+
+        for (Map<String, Object> subject : subjects) {
+            String subjectName = (String) subject.get("subjectName");
+            Long credits = (Long) subject.get("credits");
+
+            if (subjectName != null && credits != null) {
+                TableRow row = new TableRow(this);
+
+                TextView subjectTextView = new TextView(this);
+                subjectTextView.setText(subjectName);
+                subjectTextView.setPadding(8, 8, 8, 8);
+                subjectTextView.setBackgroundResource(R.drawable.columns_border);
+
+                TextView creditsTextView = new TextView(this);
+                creditsTextView.setText(String.valueOf(credits));
+                creditsTextView.setPadding(8, 8, 8, 8);
+                creditsTextView.setBackgroundResource(R.drawable.columns_border);
+
+                row.addView(subjectTextView);
+                row.addView(creditsTextView);
+                enrollmentTable.addView(row);
+            }
+        }
+    }
+
+    private void displayNoSubjectsMessage() {
+        TableRow row = new TableRow(this);
+        TextView noDataTextView = new TextView(this);
+        noDataTextView.setText("No subjects found!");
+        noDataTextView.setPadding(8, 8, 8, 8);
+        row.addView(noDataTextView);
+        enrollmentTable.addView(row);
+    }
+
+    private void redirectToLoginPage(String message) {
+        if (message != null) {
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        }
+        startActivity(new Intent(this, LoginPage.class));
+        finish();
     }
 }

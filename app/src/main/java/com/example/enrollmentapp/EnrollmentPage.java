@@ -2,7 +2,6 @@ package com.example.enrollmentapp;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TableLayout;
@@ -11,128 +10,132 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class EnrollmentPage extends AppCompatActivity {
-    private ArrayList<EnrollmentData> selectedSubjects = new ArrayList<>();
-    private int totalCredits = 0;
-    private TextView creditSummary;
     private TableLayout subjectTable;
+    private TextView creditSummary;
     private Button submitButton;
-    private FirebaseFirestore db;
+    private long totalCredits = 0;
+    private static final long MAX_CREDITS = 18;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_enrollment_page);
 
-        db = FirebaseFirestore.getInstance();
-        creditSummary = findViewById(R.id.creditSummary);
         subjectTable = findViewById(R.id.subjectTable);
+        creditSummary = findViewById(R.id.creditSummary);
         submitButton = findViewById(R.id.submitButton);
 
-        populateSubjectTable();
+        loadSubjectsFromFirestore();
 
-        submitButton.setOnClickListener(this::submitEnrollment);
-    }
+        submitButton.setOnClickListener(v -> {
+            StringBuilder selectedSubjects = new StringBuilder("Selected Subjects:\n");
+            List<Map<String, Object>> selectedSubjectsData = new ArrayList<>();
 
-    private void populateSubjectTable() {
-        String[] subjects = {
-                "Object Oriented Visual Programming",
-                "Web Programming",
-                "Discrete Mathematics",
-                "Numerical Methods",
-                "Calculus",
-                "Wireless Programming",
-                "3D Animation",
-                "Network Security",
-                "Software Engineering",
-                "Computer Network",
-                "Database System",
-                "Artificial Intelligence"
-        };
-        int[] credits = {3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3};
+            for (int i = 1; i < subjectTable.getChildCount(); i++) {
+                TableRow row = (TableRow) subjectTable.getChildAt(i);
+                CheckBox checkBox = (CheckBox) row.getChildAt(2);
 
-        for (int i = 0; i < subjects.length; i++) {
-            TableRow row = new TableRow(this);
-            row.setBackgroundResource(R.drawable.row_border);
+                if (checkBox.isChecked()) {
+                    TextView subjectTextView = (TextView) row.getChildAt(0);
+                    TextView creditsTextView = (TextView) row.getChildAt(1);
+                    long credits = Long.parseLong(creditsTextView.getText().toString());
 
-            TextView subjectName = new TextView(this);
-            subjectName.setText(subjects[i]);
-            subjectName.setPadding(16, 16, 16, 16);
-            subjectName.setBackgroundResource(R.drawable.columns_border);
+                    selectedSubjects.append(subjectTextView.getText().toString()).append("\n");
 
-            TextView creditView = new TextView(this);
-            creditView.setText(String.valueOf(credits[i]));
-            creditView.setPadding(16, 16, 16, 16);
-            creditView.setBackgroundResource(R.drawable.columns_border);
-
-            CheckBox checkBox = new CheckBox(this);
-            checkBox.setBackgroundResource(R.drawable.columns_border);
-
-            int index = i;
-            checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                if (isChecked) {
-                    if (totalCredits + credits[index] <= 18) {
-                        selectedSubjects.add(new EnrollmentData(subjects[index], credits[index]));
-                        totalCredits += credits[index];
-                    } else {
-                        buttonView.setChecked(false);
-                        Toast.makeText(this, "Maximum 18 credits allowed!", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    selectedSubjects.removeIf(sub -> sub.getSubjectName().equals(subjects[index]));
-                    totalCredits -= credits[index];
+                    Map<String, Object> subjectData = new HashMap<>();
+                    subjectData.put("subjectName", subjectTextView.getText().toString());
+                    subjectData.put("credits", credits);
+                    selectedSubjectsData.add(subjectData);
                 }
-                updateCreditSummary();
-            });
+            }
+            saveEnrollmentDataToFirestore(selectedSubjectsData);
 
-            row.addView(subjectName);
-            row.addView(creditView);
-            row.addView(checkBox);
-
-            subjectTable.addView(row);
-        }
+            Intent intent = new Intent(EnrollmentPage.this, EnrollmentSummaryPage.class);
+            intent.putExtra("totalCredits", totalCredits);
+            startActivity(intent);
+        });
     }
 
-    private void updateCreditSummary() {
-        creditSummary.setText("Total Credits: " + totalCredits);
+    private void loadSubjectsFromFirestore() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("subjects")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        String subjectName = document.getString("name");
+                        Object creditsObj = document.get("credits");
+                        long credits = creditsObj instanceof Number ? ((Number) creditsObj).longValue() : 0;
+
+                        if (subjectName != null && credits > 0) {
+                            addSubjectRow(subjectName, credits);
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Error loading subjects: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
-    public void submitEnrollment(View view) {
-        if (selectedSubjects.isEmpty()) {
-            Toast.makeText(this, "Select at least one subject!", Toast.LENGTH_SHORT).show();
+    private void addSubjectRow(String subjectName, long credits) {
+        TableRow row = new TableRow(this);
+
+        row.setBackgroundResource(R.drawable.row_border);
+        TextView subjectTextView = new TextView(this);
+        subjectTextView.setText(subjectName);
+        subjectTextView.setPadding(8, 8, 8, 8);
+        subjectTextView.setBackgroundResource(R.drawable.columns_border);
+        row.addView(subjectTextView);
+
+        TextView creditsTextView = new TextView(this);
+        creditsTextView.setText(String.valueOf(credits));
+        creditsTextView.setPadding(8, 8, 8, 8);
+        creditsTextView.setBackgroundResource(R.drawable.columns_border);
+        row.addView(creditsTextView);
+
+        CheckBox selectCheckbox = new CheckBox(this);
+        selectCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                if (totalCredits + credits > MAX_CREDITS) {
+                    Toast.makeText(EnrollmentPage.this, "Cannot pick more than " + MAX_CREDITS + " credits.", Toast.LENGTH_SHORT).show();
+                    selectCheckbox.setChecked(false);
+                    return;
+                }
+                totalCredits += credits;
+            } else {
+                totalCredits -= credits;
+            }
+            creditSummary.setText("Total Credits: " + totalCredits);
+        });
+        selectCheckbox.setBackgroundResource(R.drawable.columns_border);
+        row.addView(selectCheckbox);
+
+        subjectTable.addView(row);
+    }
+
+
+    private void saveEnrollmentDataToFirestore(List<Map<String, Object>> selectedSubjectsData) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String userEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+
+        if (userEmail == null) {
+            Toast.makeText(this, "User email not found!", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) {
-            Toast.makeText(this, "User not logged in!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String userEmail = user.getEmail();
 
         Map<String, Object> enrollmentData = new HashMap<>();
-        enrollmentData.put("selectedSubjects", selectedSubjects);
+        enrollmentData.put("selectedSubjects", selectedSubjectsData);
         enrollmentData.put("totalCredits", totalCredits);
 
         db.collection("enrollments")
                 .document(userEmail)
                 .set(enrollmentData)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Enrollment saved successfully!", Toast.LENGTH_SHORT).show();
-
-                    Intent intent = new Intent(EnrollmentPage.this, EnrollmentSummaryPage.class);
-                    startActivity(intent);
-                    finish();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to save enrollment: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+                .addOnSuccessListener(aVoid -> Toast.makeText(this, "Enrollment data saved!", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> Toast.makeText(this, "Error saving data: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }
