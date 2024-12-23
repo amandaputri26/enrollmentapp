@@ -85,8 +85,6 @@ public class EnrollmentSummaryPage extends AppCompatActivity {
 
                                 if (subjectName != null && credits != null) {
                                     TableRow row = new TableRow(this);
-
-                                    // Apply column divider to each TextView (columns)
                                     TextView subjectTextView = new TextView(this);
                                     subjectTextView.setText(subjectName);
                                     subjectTextView.setPadding(8, 8, 8, 8);
