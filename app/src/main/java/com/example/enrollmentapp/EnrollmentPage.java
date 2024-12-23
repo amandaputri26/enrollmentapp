@@ -59,20 +59,20 @@ public class EnrollmentPage extends AppCompatActivity {
 
         for (int i = 0; i < subjects.length; i++) {
             TableRow row = new TableRow(this);
-            row.setBackgroundResource(R.drawable.row_border); // Apply row border
+            row.setBackgroundResource(R.drawable.row_border);
 
             TextView subjectName = new TextView(this);
             subjectName.setText(subjects[i]);
             subjectName.setPadding(16, 16, 16, 16);
-            subjectName.setBackgroundResource(R.drawable.columns_border); // Apply column border
+            subjectName.setBackgroundResource(R.drawable.columns_border);
 
             TextView creditView = new TextView(this);
             creditView.setText(String.valueOf(credits[i]));
             creditView.setPadding(16, 16, 16, 16);
-            creditView.setBackgroundResource(R.drawable.columns_border); // Apply column border
+            creditView.setBackgroundResource(R.drawable.columns_border);
 
             CheckBox checkBox = new CheckBox(this);
-            checkBox.setBackgroundResource(R.drawable.columns_border); // Apply column border
+            checkBox.setBackgroundResource(R.drawable.columns_border);
 
             int index = i;
             checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
